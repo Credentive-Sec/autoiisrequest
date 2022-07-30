@@ -23,8 +23,9 @@ force: Overwrite artifact files if they exist.
 NOTE: either "request" or "install" (but not both) must be specified on the commandline.
 "@
 
-
+#
 # Function to initialize important variables prior to execution of the remainder of the script
+#
 function Set-Variables {
 
     #Dynamically construct a directory search root from the current environment
@@ -113,7 +114,9 @@ function Set-Variables {
     }
 }
 
+#
 #Function to clean up files created during issuance. Intended to be run if everything is successful.
+#
 function Remove-Tempfiles {
     param (
         [String]$file_location
@@ -122,7 +125,9 @@ function Remove-Tempfiles {
     Get-ChildItem $file_location autoiisrequest.* | Remove-Item
 }
 
+#
 #Function to verify we are running on a machine with IIS installed
+#
 function Test-IIS {
     if ( (Get-WindowsFeature Web-Server).InstallState -ne "Installed" ) {
         Write-Output "IIS Not installed. IIS is required for this script to function."
@@ -191,8 +196,6 @@ if ( ($request -and $install) -or (!$request -and !$install) ) {
         }
 
     }
-
-
 
 #
 # Handle the Certificate Installation Process
