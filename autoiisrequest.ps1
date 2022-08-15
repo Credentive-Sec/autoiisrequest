@@ -30,6 +30,44 @@ Optional Parameters
 "@
 
 #
+# Function to identify the request ID on the CA from the local request
+#
+function Get-RequestID {
+    param (
+        [X509Certificate]$request,
+        [String]$ca_config
+    )
+    
+    $skid = $request.extensions.SubjectKeyIdentifier
+
+    $ca_view = New-Object -ComObject CertificateAuthority.View.1
+    $ca_view.OpenConnection($ca_config)
+
+    $cv_schema=0
+    $ski_column=$ca_view.GetColumnIndex($cv_schema,'SubjectKeyIdentifier')
+    $req_column=$ca_view.GetColumnIndex($cv_schema,'Request.RequestID')
+
+    # Filter on SKI
+    $no_sort = 0
+    $equal_to = 1
+    $ca_view.SetRestriction($ski_column,$equal_to,$no_sort,$skid)
+
+    # Define output table
+    $ca_view.SetResultColumnCount(1)
+    $ca_view.SetResultColumn($req_column)
+
+    $rows= $ca_view.OpenView()
+
+    while ($rows.Next() -ne -1) 
+    {
+        $cols=$rows.EnumCertViewColumn()
+        While ($cols.Next() -ne -1) {
+            return $cols.GetValue(0)
+        }
+    }
+}
+
+#
 # Function to initialize important variables prior to execution of the remainder of the script
 #
 function Set-Variables {
@@ -72,7 +110,7 @@ function Set-Variables {
         $ca_hostname=$results[0].properties.dnshostname        
     }
 
-    [String]$Script:caconfig = "$ca_hostname\$ca_server"
+    [String]$Script:ca_config = "$ca_hostname\$ca_server"
     
 
     # If the user does not specify a location for the inf file, use $HOME
@@ -225,7 +263,7 @@ if ( ($request -and $install) -or (!$request -and !$install) ) {
     if (Test-Path "Cert:\LocalMachine\REQUEST\$request_id") {
         $request_obj = Get-ChildItem -Path "Cert:\LocalMachine\REQUEST\$request_id"
     } else {
-        Write-Output "Certificate Request file missing. Contact PKI adminstrators for assistance."
+        Write-Output "Certificate Request missing. Contact PKI adminstrators for assistance."
     }
 
     # Retrive the Certificate
@@ -240,7 +278,9 @@ if ( ($request -and $install) -or (!$request -and !$install) ) {
         $cert_thumbprint = $retrieve_result.Certificate.Thumbprint
         Write-Output "Certificate has been issued by the CA. Thumbprint: $cert_thumbprint"
     } elseif ($retrieve_result.Status -eq "Pending") {
-        Write-Output "Certificate has not yet been issued by the CA. Contact the PKI Administrators for assistance."
+        # TODO: 
+        $ca_request_id = Get-RequestID -request $request_obj -ca_config $ca_config
+        Write-Output "Certificate has not yet been issued by the CA. Contact the PKI Administrators for assistance (reference Request ID $ca_request_id)."
         Exit
     } elseif ($retrieve_result.Status -eq "Denied") {
         Write-Output "Certificate request was Denied. Contact the PKI Administrators for assitance."
