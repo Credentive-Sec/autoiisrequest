@@ -272,18 +272,19 @@ if ( ($request -and $install) -or (!$request -and !$install) ) {
     } catch {
         Write-Output "Error Retrieving Certificate"
         Write-Output "$_"
+        Exit
     }
 
     if ($retrieve_result.Status -eq "Issued") {
         $cert_thumbprint = $retrieve_result.Certificate.Thumbprint
         Write-Output "Certificate has been issued by the CA. Thumbprint: $cert_thumbprint"
     } elseif ($retrieve_result.Status -eq "Pending") {
-        # TODO: 
         $ca_request_id = Get-RequestID -request $request_obj -ca_config $ca_config
         Write-Output "Certificate has not yet been issued by the CA. Contact the PKI Administrators for assistance (reference Request ID $ca_request_id)."
         Exit
     } elseif ($retrieve_result.Status -eq "Denied") {
-        Write-Output "Certificate request was Denied. Contact the PKI Administrators for assitance."
+        $ca_request_id = Get-RequestID -request $request_obj -ca_config $ca_config
+        Write-Output "Certificate request was Denied. Contact the PKI Administrators for assitance (reference Request ID $ca_request_id)."
         #Cleanup request files
         Write-Output "Removing Temporary Files..."
         Remove-Tempfiles -file_location $location
