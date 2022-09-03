@@ -213,7 +213,7 @@ if ( ($request -and $install) -or (!$request -and !$install) ) {
     # Generate the private key and request
     Write-Output "Generating private key and certificate request and submitting to Certification Authority..."
     try {
-        $enrollResult = Get-Certificate -Template $template -DnsName $hostname -SubjectName "CN=$hostname" -CertStoreLocation cert:\LocalMachine\My
+        $enroll_result = Get-Certificate -Template $template -DnsName $hostname -SubjectName "CN=$hostname" -CertStoreLocation cert:\LocalMachine\My
     } catch {
         Write-Output "Error Requesting Certificate"
         Write-Output "$_"
@@ -221,7 +221,7 @@ if ( ($request -and $install) -or (!$request -and !$install) ) {
     }
 
     # Capture the request ID to a variable
-    $request_id = $enrollResult.Request.Thumbprint
+    $request_id = $enroll_result.Request.Thumbprint
 
     if ($request_id -eq "") {
         Write-Output "Something went wrong. Request ID unavailable."
