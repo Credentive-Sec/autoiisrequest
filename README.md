@@ -1,7 +1,6 @@
 # autoiisrequest
 
-This utility allows IIS administrators to request certificates from an ADCS instance. It is designed to hide the complexity of the interactions with the  
-CA by making intelligent guesses about required request parameters.
+This utility allows IIS administrators to request certificates from an ADCS instance. It is designed to hide the complexity of the interactions with the CA by making intelligent guesses about required request parameters.
 
 AutoIISRequest.ps1 [optional parameters] [-request | -install] [-force]
 Mandatory Parameters:
